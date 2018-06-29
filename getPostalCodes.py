@@ -19,7 +19,7 @@ import re
 import os.path
 
 
-API_KEY = ''
+API_KEY = '' # DON'T FORGET TO ADD YOUR API KEY
 
 # prepare and compile regex pattern to remove accents
 accent_replacements = {
@@ -48,8 +48,12 @@ def getGoogleMapsAddress(address, api_key):
 def getGoogleMapsPostalCode(address, api_key):
     results = getGoogleMapsAddress(address, api_key)
 
-    if results['status'] != 'OK' or results == -1:
-        return(-2) #Error detected with the HTTP request or the Google API
+    if isinstance(results, int):
+        if results == -1:
+            return(-2) #Error detected with the HTTP request or the Google API
+    else:
+        if results['status'] != 'OK':
+            return(-2) #Error detected with the HTTP request or the Google API
 
     postal_code = -1 #default value
 
@@ -94,11 +98,11 @@ if __name__ == "__main__":
     n_lines = len(content) - 1
     for i, line in enumerate(content):
         print(i, '/', n_lines, ': ', line)
-        unaccented_line = text = pattern.sub(lambda m: accent_replacements[re.escape(m.group(0))], line)
+        unaccented_line = text = pattern.sub(lambda m: accent_replacements[re.escape(m.group(0))], line.lower())
         line_nospace = unaccented_line.replace(' ', '+') # we cannot have whitespace in the url request
         result = getGoogleMapsPostalCode(line_nospace, API_KEY)
         print(' ---> ', result)
 
         with open(fname_out, 'a') as f:
-            out_string = line + ';' + result + '\n'
+            out_string = line + ';' + str(result) + '\n'
             f.write(out_string)
